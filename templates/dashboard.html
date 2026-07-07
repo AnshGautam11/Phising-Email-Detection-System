@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — PhishGuard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+<div class="scanline-overlay"></div>
+<div class="grid-bg"></div>
+
+<nav class="navbar">
+  <a class="nav-brand" href="/">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 2L3 7v8c0 6.1 4.7 11.8 11 13 6.3-1.2 11-6.9 11-13V7L14 2z" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+      <path d="M9 14l3.5 3.5L19 10" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span>PhishGuard</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Analyzer</a>
+    <span class="nav-user">{{ session.username }}</span>
+    <a href="/logout" class="btn-nav">Logout</a>
+    <button class="theme-toggle" id="themeToggle">☀</button>
+  </div>
+</nav>
+
+<div class="dashboard-container">
+  <h1 class="page-title">Analytics <span>Dashboard</span></h1>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-number">{{ stats.total or 0 }}</span>
+      <div class="stat-label">TOTAL SCANS</div>
+    </div>
+    <div class="stat-card danger">
+      <span class="stat-number">{{ stats.phishing or 0 }}</span>
+      <div class="stat-label">PHISHING DETECTED</div>
+    </div>
+    <div class="stat-card safe-card">
+      <span class="stat-number">{{ stats.safe or 0 }}</span>
+      <div class="stat-label">SAFE EMAILS</div>
+    </div>
+  </div>
+
+  <div class="history-table-wrap">
+    <div class="history-table-title">SCAN HISTORY — LAST 20 SCANS</div>
+
+    {% if history %}
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>EMAIL PREVIEW</th>
+          <th>VERDICT</th>
+          <th>CONFIDENCE</th>
+          <th>RISK</th>
+          <th>SCANNED AT</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+        <tr>
+          <td style="color:var(--text3);font-family:var(--font-mono)">{{ loop.index }}</td>
+          <td class="table-email" title="{{ row.email_text[:200] }}">
+            {{ row.email_text[:80] }}{% if row.email_text|length > 80 %}…{% endif %}
+          </td>
+          <td>
+            <span class="badge {{ 'phishing' if row.prediction == 'Phishing Email' else 'safe' }}">
+              {{ 'PHISHING' if row.prediction == 'Phishing Email' else 'SAFE' }}
+            </span>
+          </td>
+          <td style="font-family:var(--font-mono)">{{ "%.1f"|format(row.confidence) }}%</td>
+          <td>
+            <span class="badge {{ row.risk_level.lower() }}">{{ row.risk_level.upper() }}</span>
+          </td>
+          <td style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text3)">
+            {{ row.scanned_at[:16] if row.scanned_at else '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>No scans yet. <a href="/" style="color:var(--accent)">Start analyzing emails</a></p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+const html = document.documentElement;
+const themeToggle = document.getElementById('themeToggle');
+html.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+themeToggle.addEventListener('click', () => {
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+});
+</script>
+</body>
+</html>
